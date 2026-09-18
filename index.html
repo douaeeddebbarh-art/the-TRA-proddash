@@ -1,0 +1,1175 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRA Studio — Production OS</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="%23000"/><text x="32" y="43" font-family="Arial" font-size="34" font-weight="bold" fill="%23E52329" text-anchor="middle">T</text></svg>">
+<style>
+:root{
+  --black:#000000; --bg:#050505; --surface:#0A0A0A; --surface2:#111111; --surface3:#161616;
+  --border:rgba(255,255,255,.09); --red:#E52329; --redDark:#B5181D;
+  --g100:#F5F5F5; --g300:#B3B3B3; --g500:#7A7A7A; --g700:#4A4A4A;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:#fff;font-family:"Helvetica Neue",Arial,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#222;border-radius:8px}
+::-webkit-scrollbar-thumb:hover{background:var(--red)}
+
+.layout{display:flex;min-height:100vh}
+.sidebar{width:230px;flex-shrink:0;background:var(--black);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.logo{display:flex;align-items:baseline;gap:8px;padding:24px 22px}
+.logo b{font-size:20px;font-weight:800;letter-spacing:-.02em}
+.logo .red{color:var(--red)}
+.logo small{font-size:10px;letter-spacing:.2em;color:var(--g500);text-transform:uppercase}
+.sidebar nav{flex:1;padding:0 12px;display:flex;flex-direction:column;gap:4px}
+.nav-link{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:var(--g300);font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.nav-link:hover{background:var(--surface);color:#fff}
+.nav-link.active{background:var(--surface2);color:#fff}
+.nav-bar{width:3px;height:16px;border-radius:3px;background:transparent;flex-shrink:0}
+.nav-link.active .nav-bar{background:var(--red)}
+.nav-icon{width:16px;text-align:center;opacity:.9}
+.sidebar-foot{padding:16px 22px;border-top:1px solid var(--border);font-size:11px;color:var(--g500)}
+.sidebar-foot .w{color:#fff;font-weight:600}
+
+.main-col{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 24px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.85);backdrop-filter:blur(6px);position:sticky;top:0;z-index:20}
+.search{flex:1;max-width:420px}
+.search input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 14px;color:#fff;font-size:13px;outline:none}
+.search input::placeholder{color:var(--g500)}
+.topbar-date{font-size:11px;color:var(--g500);text-transform:capitalize;white-space:nowrap}
+.topbar-actions{display:flex;align-items:center;gap:10px;position:relative}
+.new-wrap{position:relative}
+.new-menu{position:absolute;right:0;top:calc(100% + 8px);width:190px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,.5);z-index:30}
+.new-menu button{display:block;width:100%;text-align:left;padding:11px 16px;background:none;border:none;color:var(--g300);font-size:13px;cursor:pointer}
+.new-menu button:hover{background:var(--surface3);color:#fff}
+
+.content{flex:1;padding:22px 26px 90px}
+@media(min-width:900px){.content{padding:26px 32px}}
+
+.h1{font-size:24px;font-weight:600;margin:0 0 4px}
+.grey{color:var(--g500)}
+.small{font-size:12px}
+.bold{font-weight:600}
+.upper{text-transform:uppercase;letter-spacing:.05em}
+.stack-8>*+*{margin-top:28px}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px}
+.pad{padding:20px}
+.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--g500);margin:0 0 16px}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(min-width:700px){.kpi-grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1150px){.kpi-grid{grid-template-columns:repeat(6,1fr)}}
+.kpi{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;cursor:pointer;color:inherit}
+.kpi:hover{border-color:rgba(229,35,41,.4)}
+.kpi .label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);margin-bottom:8px}
+.kpi .value{font-size:30px;font-weight:700}
+.kpi .value.accent{color:var(--red)}
+
+.grid-3{display:grid;gap:16px;grid-template-columns:1fr}
+@media(min-width:1100px){.grid-3{grid-template-columns:2fr 1fr}}
+.col-span-2{}
+
+.list{display:flex;flex-direction:column;gap:8px}
+.list-row{display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;gap:12px}
+.row-end{display:flex;align-items:center;gap:12px}
+
+.health{display:flex;align-items:center;gap:9px}
+.dot{width:10px;height:10px;border-radius:50%}
+.dot-red{background:var(--red)}
+.dot-amber{background:#e5b929}
+.dot-green{background:#4ade80}
+
+.badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:4px 10px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;border:1px solid var(--border);background:var(--surface2);color:var(--g300);white-space:nowrap}
+.badge.urgent{border-color:rgba(229,35,41,.4);background:rgba(229,35,41,.1);color:var(--red)}
+.badge .bdot{width:6px;height:6px;border-radius:50%;background:var(--g500)}
+.badge.urgent .bdot{background:var(--red)}
+.prio{display:inline-flex;align-items:center;gap:6px;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--g500)}
+.prio .pdot{width:6px;height:6px;border-radius:50%}
+
+.empty{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:56px 24px;text-align:center}
+.empty .t{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.empty .s{color:var(--g500);font-size:12px;margin-top:4px}
+
+.btn{border-radius:10px;padding:9px 16px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:700;border:1px solid var(--border);background:var(--surface2);color:var(--g300);cursor:pointer}
+.btn:hover{color:#fff}
+.btn-primary{background:var(--red);border-color:var(--red);color:#fff}
+.btn-primary:hover{background:var(--redDark)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed}
+.btn-ghost{background:none}
+.icon-btn{background:none;border:none;color:var(--g500);cursor:pointer;font-size:16px;line-height:1}
+.icon-btn:hover{color:#fff}
+
+input,select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:#fff;font-size:14px;outline:none;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:var(--red)}
+label{display:block}
+label span{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);margin-bottom:6px}
+.stack-form>*+*{margin-top:16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:16px;z-index:100}
+.modal{width:100%;max-width:440px;max-height:88vh;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border)}
+.modal-head h2{margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.05em}
+.modal form{padding:20px}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.error{color:var(--red);font-size:12px;min-height:16px;margin-top:10px}
+
+.kanban{display:flex;gap:16px;overflow-x:auto;padding-bottom:12px}
+.kanban-col{width:270px;flex-shrink:0}
+.kanban-head{display:flex;align-items:center;justify-content:space-between;padding:0 4px;margin-bottom:10px}
+.kanban-head h3{margin:0;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--g500)}
+.kanban-cards{display:flex;flex-direction:column;gap:10px}
+.kcard{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px}
+.kcard .kc-client{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--g500)}
+.kcard .kc-name{font-size:13px;font-weight:600;margin:2px 0}
+.kcard .kc-project{font-size:11px;color:var(--g500)}
+.kcard .kc-row{display:flex;align-items:center;justify-content:space-between;font-size:11px;margin-top:10px}
+.kcard select{padding:5px 8px;font-size:10px}
+.kcard .kc-next{border-top:1px solid var(--border);margin-top:10px;padding-top:8px;font-size:10px;color:var(--g500)}
+.kcard .kc-next b{color:#fff;font-weight:500}
+.overdue{color:var(--red);font-weight:600}
+
+.grid-cards{display:grid;gap:12px;grid-template-columns:1fr}
+@media(min-width:700px){.grid-cards{grid-template-columns:1fr 1fr}}
+@media(min-width:1100px){.grid-cards{grid-template-columns:1fr 1fr 1fr}}
+.client-card{display:block;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;color:inherit}
+.client-card:hover{border-color:rgba(229,35,41,.4)}
+.client-card .co{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--g500)}
+.client-card .nm{font-size:15px;font-weight:700;margin:2px 0 10px}
+.client-card .meta{display:flex;justify-content:space-between;font-size:11px;color:var(--g500)}
+
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding:12px 14px;border-bottom:1px solid var(--border)}
+tbody td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.05)}
+tbody tr:last-child td{border-bottom:none}
+.table-wrap{overflow-x:auto}
+.table-controls{display:flex;flex-wrap:wrap;gap:10px}
+.table-controls input,.table-controls select{max-width:220px}
+
+.cal-head{display:flex;align-items:center;justify-content:space-between}
+.cal-nav{display:flex;gap:8px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:14px}
+.cal-dow{text-align:center;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--g500);padding-bottom:4px}
+.cal-cell{min-height:88px;border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:6px;font-size:10px}
+.cal-cell.empty-cell{border-color:transparent;background:none}
+.cal-cell.today{border-color:rgba(229,35,41,.5)}
+.cal-daynum{font-weight:600;color:var(--g300);margin-bottom:4px}
+.cal-cell.today .cal-daynum{color:var(--red)}
+.cal-evt{background:var(--surface2);border-radius:6px;padding:3px 6px;margin-bottom:3px;color:var(--g300);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.msg-grid{display:grid;gap:20px;grid-template-columns:1fr}
+@media(min-width:1050px){.msg-grid{grid-template-columns:2fr 1fr}}
+textarea{resize:vertical;min-height:140px}
+.msg-log{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;font-size:11px;margin-bottom:8px}
+.msg-log .d{color:var(--g500);margin-bottom:4px}
+.msg-log .c{color:var(--g300);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+
+.status-dot-line{display:flex;align-items:center;gap:8px;font-size:13px}
+
+.boot{display:flex;min-height:100vh;align-items:center;justify-content:center;text-align:center;color:var(--g300);font-size:14px;padding:24px;line-height:1.7}
+.boot-error{color:var(--g100)}
+
+.mobile-nav{display:none}
+@media(max-width:860px){
+  .sidebar{display:none}
+  .mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;justify-content:space-around;padding:8px 0;background:rgba(0,0,0,.96);border-top:1px solid var(--border);z-index:40}
+  .mobile-nav a{color:var(--g500);font-size:18px;padding:6px 12px}
+  .mobile-nav a.active{color:var(--red)}
+  .topbar-date{display:none}
+}
+
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* =========================================================
+   TRA STUDIO — PRODUCTION OS (frontend + backend)
+   Les données ne sont plus stockées dans le navigateur : ce
+   fichier parle à une fonction serverless Netlify
+   (/api/data) qui lit/écrit dans Netlify Blobs. Toute l'équipe
+   voit donc les mêmes données, sur n'importe quel appareil,
+   même après fermeture de l'onglet.
+   ========================================================= */
+
+/* ---------- Couche API (remplace le stockage local) ---------- */
+var API_URL = "/api/data";
+var DB_CACHE = { clients: [], projects: [], deliverables: [], activity_log: [], messages: [], team_members: [] };
+
+function getTable(t) { return DB_CACHE[t] || []; }
+
+async function fetchDb() {
+  var res = await fetch(API_URL, { headers: { "Accept": "application/json" } });
+  if (!res.ok) throw new Error("Le serveur a renvoyé une erreur (" + res.status + ").");
+  return res.json();
+}
+
+async function apiMutate(action, table, id, data) {
+  var res = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: action, table: table, id: id, data: data })
+  });
+  var body = null;
+  try { body = await res.json(); } catch (e) { /* pas de corps JSON */ }
+  if (!res.ok) throw new Error((body && body.error) || "Le serveur a refusé la demande (" + res.status + ").");
+  DB_CACHE = body.db;
+  return body.row;
+}
+
+async function insertRow(table, data) { return apiMutate("insert", table, null, data); }
+async function updateRow(table, id, patch) { return apiMutate("update", table, id, patch); }
+async function deleteRow(table, id) { return apiMutate("delete", table, id, null); }
+
+function exportDbJson() { return JSON.stringify(DB_CACHE, null, 2); }
+
+async function importDbJson(jsonText) {
+  var parsed = JSON.parse(jsonText);
+  return apiMutate("import", null, null, parsed);
+}
+
+async function resetDbRemote() { return apiMutate("reset", null, null, null); }
+
+/* ---------- Constantes métier ---------- */
+var STATUSES = [
+  { key: "to_edit", label: "À monter" },
+  { key: "editing", label: "En montage" },
+  { key: "internal_review", label: "Validation interne" },
+  { key: "ready_to_deliver", label: "Prêt à livrer" },
+  { key: "delivered", label: "Livré" },
+  { key: "revision_requested", label: "Modifications demandées" },
+  { key: "revision_in_progress", label: "Modification en cours" },
+  { key: "finalized", label: "Finalisé" }
+];
+
+var PRIORITIES = [
+  { key: "high", label: "Haute", color: "#E52329" },
+  { key: "medium", label: "Moyenne", color: "#E5B929" },
+  { key: "low", label: "Basse", color: "#4ADE80" }
+];
+
+var TYPES = ["Podcast", "Reel", "Story", "Photo", "Video", "Shooting", "Autre"];
+
+function statusLabel(key) {
+  var found = STATUSES.filter(function (s) { return s.key === key; })[0];
+  return found ? found.label : key;
+}
+
+function isUrgentStatus(status) { return status === "revision_requested"; }
+
+function priorityDef(key) {
+  var found = PRIORITIES.filter(function (p) { return p.key === key; })[0];
+  return found || PRIORITIES[1];
+}
+
+function generateWaMessage(opts) {
+  var first = opts.firstName || "là";
+  var type = (opts.deliverableType || "contenu").toLowerCase();
+  var link = opts.link || "[LIEN]";
+  if (opts.status === "editing") {
+    return "Bonjour " + first + " \uD83D\uDC4B\n\nPetit update concernant votre contenu : vos " + type + " sont actuellement en cours de montage \uD83C\uDFAC\n\nNous vous tiendrons informe(e) des que le rendu sera pret.";
+  }
+  if (opts.status === "ready_to_deliver" || opts.status === "delivered") {
+    return "Bonjour " + first + " \u2728\n\nVotre rendu est maintenant pret !\n\nVous pouvez le retrouver ici :\n" + link + "\n\nN'hesitez pas a nous faire votre retour une fois que vous avez pu le consulter.";
+  }
+  if (opts.status === "revision_requested") {
+    return "Bonjour " + first + ",\n\nNous avons bien recu vos retours concernant le rendu.\n\nNotre equipe va proceder aux modifications demandees et nous reviendrons vers vous des que la nouvelle version sera prete.";
+  }
+  if (opts.status === "revision_in_progress") {
+    return "Bonjour " + first + ",\n\nUn petit update : les modifications demandees sont en cours de traitement \uD83C\uDFAC\n\nNous revenons vers vous tres vite avec la nouvelle version.";
+  }
+  if (opts.status === "finalized") {
+    return "Bonjour " + first + " \u2728\n\nVotre rendu final est pret et disponible ici :\n\n" + link + "\n\nMerci encore pour votre confiance \uD83E\uDD0D";
+  }
+  return "Bonjour " + first + " \uD83D\uDC4B\n\nPetite mise a jour concernant votre projet avec TRA Studio.";
+}
+
+/* ---------- Utilitaires date ---------- */
+function todayISO() {
+  var d = new Date();
+  var m = String(d.getMonth() + 1).padStart(2, "0");
+  var day = String(d.getDate()).padStart(2, "0");
+  return d.getFullYear() + "-" + m + "-" + day;
+}
+function dateToISO(d) {
+  var m = String(d.getMonth() + 1).padStart(2, "0");
+  var day = String(d.getDate()).padStart(2, "0");
+  return d.getFullYear() + "-" + m + "-" + day;
+}
+function isOverdue(dateStr, status) {
+  if (!dateStr) return false;
+  if (status === "delivered" || status === "finalized") return false;
+  return dateStr < todayISO();
+}
+function isToday(dateStr) { return dateStr === todayISO(); }
+function formatDate(dateStr) {
+  if (!dateStr) return "\u2014";
+  var parts = dateStr.split("-");
+  if (parts.length !== 3) return dateStr;
+  var d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
+}
+function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+
+/* ---------- Etat global d'UI (non persistant) ---------- */
+var uiModal = null;      // { type: 'client' | 'project' | 'deliverable' }
+var uiNewMenuOpen = false;
+
+/* ---------- Navigation (hash router) ---------- */
+function navigate(path) { location.hash = "#" + path; }
+
+function currentRoute() {
+  var hash = location.hash.replace(/^#/, "") || "/";
+  var parts = hash.split("?");
+  return { path: parts[0], params: new URLSearchParams(parts[1] || "") };
+}
+
+var NAV_ITEMS = [
+  { path: "/", label: "Overview", icon: "\u25E7" },
+  { path: "/production", label: "Production", icon: "\u25A4" },
+  { path: "/clients", label: "Clients", icon: "\u25CD" },
+  { path: "/calendar", label: "Calendar", icon: "\u25A6" },
+  { path: "/deliverables", label: "Deliverables", icon: "\u25A5" },
+  { path: "/messages", label: "Messages", icon: "\u2709" },
+  { path: "/settings", label: "Settings", icon: "\u2699" }
+];
+
+/* ---------- Rendu principal ---------- */
+function render() {
+  var route = currentRoute();
+  var page = "";
+
+  if (route.path === "/") page = renderOverview();
+  else if (route.path === "/production") page = renderProduction();
+  else if (route.path === "/clients") page = renderClients();
+  else if (route.path.indexOf("/clients/") === 0) page = renderClientProfile(route.path.slice("/clients/".length));
+  else if (route.path === "/calendar") page = renderCalendar();
+  else if (route.path === "/deliverables") page = renderDeliverables(route.params);
+  else if (route.path === "/messages") page = renderMessages();
+  else if (route.path === "/settings") page = renderSettings();
+  else page = emptyState("Page introuvable", "Utilisez le menu pour naviguer.");
+
+  var html =
+    '<div class="layout">' +
+      renderSidebar(route.path) +
+      '<div class="main-col">' +
+        renderTopbar() +
+        '<main class="content">' + page + "</main>" +
+      "</div>" +
+      renderMobileNav(route.path) +
+    "</div>" +
+    (uiModal ? renderModal() : "");
+
+  document.getElementById("app").innerHTML = html;
+  applyClientFilter();
+  applyDelivFilters();
+}
+
+window.addEventListener("hashchange", render);
+
+window.addEventListener("DOMContentLoaded", async function () {
+  document.getElementById("app").innerHTML = '<div class="boot">Connexion au serveur\u2026</div>';
+  try {
+    DB_CACHE = await fetchDb();
+  } catch (e) {
+    document.getElementById("app").innerHTML =
+      '<div class="boot boot-error">Impossible de se connecter au serveur.<br>' +
+      'V\u00e9rifiez votre connexion puis rechargez la page.<br><span class="grey small">' + escapeHtml(e.message) + "</span></div>";
+    return;
+  }
+  if (!location.hash) location.hash = "#/";
+  render();
+  setInterval(pollDb, 6000);
+});
+
+/* Récupère périodiquement les données côté serveur, pour que les
+   changements faits sur un autre appareil apparaissent ici aussi.
+   On évite de perturber une saisie en cours (modale ouverte ou
+   champ actif). */
+async function pollDb() {
+  if (uiModal) return;
+  var active = document.activeElement;
+  if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.tagName === "SELECT")) return;
+  try {
+    var fresh = await fetchDb();
+    DB_CACHE = fresh;
+    render();
+  } catch (e) { /* on retentera au prochain cycle */ }
+}
+
+/* ---------- Layout : sidebar / topbar / mobile nav ---------- */
+function renderSidebar(routePath) {
+  var links = NAV_ITEMS.map(function (n) {
+    var active = n.path === "/" ? routePath === "/" : routePath.indexOf(n.path) === 0;
+    return '<a href="#' + n.path + '" class="nav-link' + (active ? " active" : "") + '">' +
+      '<span class="nav-bar"></span><span class="nav-icon">' + n.icon + "</span><span>" + n.label.toUpperCase() + "</span></a>";
+  }).join("");
+
+  return (
+    '<aside class="sidebar">' +
+      '<div class="logo"><b>TR<span class="red">\u00C1</span></b><small>Studio</small></div>' +
+      "<nav>" + links + "</nav>" +
+      '<div class="sidebar-foot"><div class="w">TRA Studio</div><div>Production OS</div></div>' +
+    "</aside>"
+  );
+}
+
+function renderMobileNav(routePath) {
+  var icons = [
+    ["/", "\u25E7"], ["/production", "\u25A4"], ["/clients", "\u25CD"],
+    ["/calendar", "\u25A6"], ["/messages", "\u2709"]
+  ];
+  return '<nav class="mobile-nav">' + icons.map(function (i) {
+    var active = i[0] === "/" ? routePath === "/" : routePath.indexOf(i[0]) === 0;
+    return '<a href="#' + i[0] + '" class="' + (active ? "active" : "") + '">' + i[1] + "</a>";
+  }).join("") + "</nav>";
+}
+
+function renderTopbar() {
+  var today = new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+  return (
+    '<header class="topbar">' +
+      '<form class="search" onsubmit="event.preventDefault(); doSearch();">' +
+        '<input id="global-search" placeholder="Rechercher un client, projet, livrable\u2026">' +
+      "</form>" +
+      '<div class="topbar-date">' + escapeHtml(today) + "</div>" +
+      '<div class="topbar-actions">' +
+        '<div class="new-wrap">' +
+          '<button class="btn btn-primary" onclick="toggleNewMenu()">+ New</button>' +
+          (uiNewMenuOpen ?
+            '<div class="new-menu">' +
+              '<button onclick="openQuickAdd(\'client\')">Nouveau client</button>' +
+              '<button onclick="openQuickAdd(\'project\')">Nouveau projet</button>' +
+              '<button onclick="openQuickAdd(\'deliverable\')">Nouveau livrable</button>' +
+            "</div>" : "") +
+        "</div>" +
+      "</div>" +
+    "</header>"
+  );
+}
+
+function doSearch() {
+  var val = document.getElementById("global-search").value;
+  navigate("/deliverables?q=" + encodeURIComponent(val));
+}
+
+function toggleNewMenu() { uiNewMenuOpen = !uiNewMenuOpen; render(); }
+function openQuickAdd(type) { uiNewMenuOpen = false; uiModal = { type: type }; render(); }
+function closeModal() { uiModal = null; render(); }
+
+/* ---------- Petits composants réutilisables ---------- */
+function kpiCard(label, value, accent, path) {
+  return (
+    '<button class="kpi" onclick="navigate(\'' + path + '\')">' +
+      '<span class="label">' + escapeHtml(label) + "</span>" +
+      '<span class="value' + (accent ? " accent" : "") + '">' + value + "</span>" +
+    "</button>"
+  );
+}
+
+function emptyState(title, subtitle) {
+  return '<div class="empty"><div class="t">' + escapeHtml(title) + '</div><div class="s">' + escapeHtml(subtitle) + "</div></div>";
+}
+
+function statusBadge(status) {
+  var urgent = isUrgentStatus(status);
+  return '<span class="badge' + (urgent ? " urgent" : "") + '"><span class="bdot"></span>' + escapeHtml(statusLabel(status)) + "</span>";
+}
+
+function priorityBadge(key) {
+  var def = priorityDef(key);
+  return '<span class="prio"><span class="pdot" style="background:' + def.color + '"></span>' + def.label + "</span>";
+}
+
+function statusOptions(selected) {
+  return STATUSES.map(function (s) {
+    return '<option value="' + s.key + '"' + (s.key === selected ? " selected" : "") + ">" + s.label + "</option>";
+  }).join("");
+}
+
+/* ---------- Jointures ---------- */
+function joinedDeliverables() {
+  var clients = getTable("clients");
+  var projects = getTable("projects");
+  return getTable("deliverables").map(function (d) {
+    var project = projects.filter(function (p) { return p.id === d.project_id; })[0] || null;
+    var client = project ? (clients.filter(function (c) { return c.id === project.client_id; })[0] || null) : null;
+    var copy = Object.assign({}, d);
+    copy.project = project;
+    copy.client = client;
+    return copy;
+  });
+}
+
+/* ---------- Page : Overview ---------- */
+function renderOverview() {
+  var clients = getTable("clients");
+  var projects = getTable("projects");
+  var deliverables = joinedDeliverables();
+
+  var editing = deliverables.filter(function (d) { return d.status === "editing"; }).length;
+  var ready = deliverables.filter(function (d) { return d.status === "ready_to_deliver"; }).length;
+  var modifications = deliverables.filter(function (d) { return d.status === "revision_requested" || d.status === "revision_in_progress"; }).length;
+  var overdue = deliverables.filter(function (d) { return isOverdue(d.deadline, d.status); }).length;
+
+  var todayItems = [];
+  projects.filter(function (p) { return isToday(p.shooting_date); }).forEach(function (p) {
+    todayItems.push({ type: "Shooting", label: p.name });
+  });
+  deliverables.filter(function (d) { return isToday(d.deadline); }).forEach(function (d) {
+    todayItems.push({ type: "Deadline", label: (d.client ? d.client.name : "") + " \u2014 " + d.name });
+  });
+
+  var health = { label: "ON TRACK", tone: "green" };
+  if (overdue >= 3) health = { label: "AT RISK", tone: "red" };
+  else if (overdue >= 1) health = { label: "ATTENTION", tone: "amber" };
+
+  var recent = deliverables.slice().sort(function (a, b) {
+    return (a.deadline || "") < (b.deadline || "") ? -1 : 1;
+  }).slice(0, 6);
+
+  var todayHtml = todayItems.length === 0
+    ? emptyState("Rien aujourd\u2019hui", "Aucun shooting ni deadline pour aujourd\u2019hui.")
+    : '<ul class="list">' + todayItems.map(function (i) {
+        return '<li class="list-row"><span class="grey">' + i.type + '</span><span class="bold">' + escapeHtml(i.label) + "</span></li>";
+      }).join("") + "</ul>";
+
+  var recentHtml = recent.length === 0
+    ? emptyState("Aucun livrable", "Cr\u00e9ez votre premier livrable pour commencer.")
+    : '<div class="list">' + recent.map(function (d) {
+        return (
+          '<div class="list-row"><div><p class="bold" style="margin:0">' + escapeHtml(d.name) + "</p>" +
+          '<p class="grey small" style="margin:2px 0 0">' + escapeHtml(d.client ? d.client.name : "") + " \u2014 " + escapeHtml(d.project ? d.project.name : "") + "</p></div>" +
+          '<div class="row-end"><span class="grey small">' + formatDate(d.deadline) + "</span>" + statusBadge(d.status) + "</div></div>"
+        );
+      }).join("") + "</div>";
+
+  return (
+    '<div class="stack-8">' +
+      "<div><h1 class=\"h1\">Bonjour, TRA.</h1><p class=\"grey\">Voici ce qui se passe dans la production aujourd\u2019hui.</p></div>" +
+      '<div class="kpi-grid">' +
+        kpiCard("Clients actifs", clients.length, false, "/clients") +
+        kpiCard("Projets en cours", projects.length, false, "/production") +
+        kpiCard("En montage", editing, false, "/production") +
+        kpiCard("Pr\u00eats \u00e0 livrer", ready, false, "/production") +
+        kpiCard("Modifications", modifications, modifications > 0, "/production") +
+        kpiCard("En retard", overdue, overdue > 0, "/deliverables") +
+      "</div>" +
+      '<div class="grid-3">' +
+        '<div class="card pad col-span-2"><h2 class="section-title">Today</h2>' + todayHtml + "</div>" +
+        '<div class="card pad"><h2 class="section-title">Production health</h2>' +
+          '<div class="health"><span class="dot dot-' + health.tone + '"></span><span class="bold upper">' + health.label + "</span></div>" +
+          '<p class="grey small" style="margin-top:12px">' + projects.length + " projets \u00b7 " + overdue + " en retard</p>" +
+        "</div>" +
+      "</div>" +
+      '<div class="card pad"><h2 class="section-title">Derniers livrables</h2>' + recentHtml + "</div>" +
+    "</div>"
+  );
+}
+
+/* ---------- Page : Production (Kanban) ---------- */
+async function changeStatus(id, status) {
+  try {
+    await updateRow("deliverables", id, { status: status, updated_at: new Date().toISOString() });
+    render();
+  } catch (e) {
+    alert("Le changement de statut n\u2019a pas pu \u00eatre enregistr\u00e9 : " + e.message);
+    render();
+  }
+}
+
+function renderProduction() {
+  var deliverables = joinedDeliverables();
+  if (deliverables.length === 0) {
+    return emptyState("Aucun livrable", "Cr\u00e9ez un livrable pour d\u00e9marrer la production.");
+  }
+
+  var grouped = {};
+  STATUSES.forEach(function (s) { grouped[s.key] = []; });
+  deliverables.forEach(function (d) { (grouped[d.status] = grouped[d.status] || []).push(d); });
+
+  var columns = STATUSES.map(function (s) {
+    var cards = (grouped[s.key] || []).map(function (d) {
+      var overdueClass = isOverdue(d.deadline, d.status) ? " overdue" : "";
+      return (
+        '<div class="kcard">' +
+          '<div class="kc-client">' + escapeHtml(d.client ? d.client.name : "Client") + "</div>" +
+          '<div class="kc-name">' + escapeHtml(d.name) + "</div>" +
+          '<div class="kc-project">' + escapeHtml(d.project ? d.project.name : "") + "</div>" +
+          '<div class="kc-row"><span class="grey">' + escapeHtml(d.assigned_to || "Non assign\u00e9") + '</span><span class="' + overdueClass + '">' + formatDate(d.deadline) + "</span></div>" +
+          '<div class="kc-row">' + priorityBadge(d.priority) +
+            '<select onchange="changeStatus(\'' + d.id + '\', this.value)">' + statusOptions(d.status) + "</select>" +
+          "</div>" +
+          (d.next_action ? '<div class="kc-next">Next: <b>' + escapeHtml(d.next_action) + "</b></div>" : "") +
+        "</div>"
+      );
+    }).join("");
+
+    return (
+      '<div class="kanban-col">' +
+        '<div class="kanban-head"><h3>' + s.label + '</h3><span class="grey small">' + (grouped[s.key] || []).length + "</span></div>" +
+        '<div class="kanban-cards">' + cards + "</div>" +
+      "</div>"
+    );
+  }).join("");
+
+  return (
+    '<div class="stack-8">' +
+      '<div><h1 class="h1">Production pipeline</h1><p class="grey">' + deliverables.length + " livrables en cours</p></div>" +
+      '<div class="kanban">' + columns + "</div>" +
+    "</div>"
+  );
+}
+
+/* ---------- Page : Clients ---------- */
+function renderClients() {
+  var clients = getTable("clients").slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
+  var projects = getTable("projects");
+
+  var cards = clients.map(function (c) {
+    var count = projects.filter(function (p) { return p.client_id === c.id; }).length;
+    var search = (c.name + " " + (c.company || "")).toLowerCase();
+    return (
+      '<a class="client-card" data-search="' + escapeHtml(search) + '" href="#/clients/' + c.id + '">' +
+        '<div class="co">' + escapeHtml(c.company || "Client") + "</div>" +
+        '<div class="nm">' + escapeHtml(c.name) + "</div>" +
+        '<div class="meta"><span>' + count + " projet(s)</span><span>" + escapeHtml(c.account_manager || "\u2014") + "</span></div>" +
+      "</a>"
+    );
+  }).join("");
+
+  return (
+    '<div class="stack-8">' +
+      '<div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px">' +
+        '<div><h1 class="h1">Clients</h1><p class="grey">' + clients.length + " clients</p></div>" +
+        '<input id="client-search" style="max-width:260px" placeholder="Rechercher\u2026" oninput="applyClientFilter()">' +
+      "</div>" +
+      (clients.length === 0
+        ? emptyState("Aucun client", "Ajoutez votre premier client depuis le bouton + New.")
+        : '<div class="grid-cards" id="clients-grid">' + cards + "</div>") +
+    "</div>"
+  );
+}
+
+function applyClientFilter() {
+  var searchEl = document.getElementById("client-search");
+  if (!searchEl) return;
+  var q = (searchEl.value || "").toLowerCase();
+  var nodes = document.querySelectorAll("#clients-grid .client-card");
+  for (var i = 0; i < nodes.length; i++) {
+    var s = nodes[i].getAttribute("data-search") || "";
+    nodes[i].style.display = s.indexOf(q) !== -1 ? "" : "none";
+  }
+}
+
+/* ---------- Page : Fiche client ---------- */
+function renderClientProfile(id) {
+  var clients = getTable("clients");
+  var client = clients.filter(function (c) { return c.id === id; })[0];
+  if (!client) return emptyState("Client introuvable", "Ce client n\u2019existe plus.");
+
+  var projects = getTable("projects").filter(function (p) { return p.client_id === id; });
+  var projectIds = projects.map(function (p) { return p.id; });
+  var deliverables = getTable("deliverables")
+    .filter(function (d) { return projectIds.indexOf(d.project_id) !== -1; })
+    .map(function (d) {
+      var copy = Object.assign({}, d);
+      copy.project = projects.filter(function (p) { return p.id === d.project_id; })[0] || null;
+      return copy;
+    });
+  var activity = getTable("activity_log")
+    .filter(function (a) { return a.client_id === id; })
+    .sort(function (a, b) { return a.created_at < b.created_at ? 1 : -1; });
+
+  var projectsHtml = projects.length === 0
+    ? emptyState("Aucun projet", "Cr\u00e9ez un projet pour ce client.")
+    : '<div class="list">' + projects.map(function (p) {
+        return (
+          '<div class="list-row"><div><p class="bold" style="margin:0">' + escapeHtml(p.name) + '</p>' +
+          '<p class="grey small" style="margin:2px 0 0">' + escapeHtml(p.type || "") + "</p></div>" +
+          '<span class="grey small">' + formatDate(p.deadline) + "</span></div>"
+        );
+      }).join("") + "</div>";
+
+  var deliverablesHtml = deliverables.length === 0
+    ? emptyState("Aucun livrable", "Rien pour ce client actuellement.")
+    : '<div class="list">' + deliverables.map(function (d) {
+        return (
+          '<div class="list-row"><div><p class="bold" style="margin:0">' + escapeHtml(d.name) + '</p>' +
+          '<p class="grey small" style="margin:2px 0 0">' + escapeHtml(d.project ? d.project.name : "") + "</p></div>" +
+          statusBadge(d.status) + "</div>"
+        );
+      }).join("") + "</div>";
+
+  var activityHtml = activity.length === 0
+    ? emptyState("Aucune activit\u00e9", "L\u2019historique appara\u00eetra ici.")
+    : '<ul class="list" style="border-left:1px solid var(--border);padding-left:16px">' + activity.map(function (a) {
+        return '<li style="font-size:13px"><span class="grey small">' + formatDate(a.created_at.slice(0, 10)) + " \u2014 </span>" + escapeHtml(a.message) + "</li>";
+      }).join("") + "</ul>";
+
+  var meta = [];
+  if (client.whatsapp) meta.push("WhatsApp: <span style=\"color:#fff\">" + escapeHtml(client.whatsapp) + "</span>");
+  if (client.email) meta.push("Email: <span style=\"color:#fff\">" + escapeHtml(client.email) + "</span>");
+  if (client.account_manager) meta.push("Responsable: <span style=\"color:#fff\">" + escapeHtml(client.account_manager) + "</span>");
+
+  return (
+    '<div class="stack-8">' +
+      "<div>" +
+        '<a href="#/clients" class="grey small upper">\u2190 Clients</a>' +
+        '<div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-top:8px">' +
+          '<div><h1 class="h1">' + escapeHtml(client.name) + '</h1><p class="grey">' + escapeHtml(client.company || "") + "</p></div>" +
+          '<div class="grey small" style="display:flex;gap:16px;flex-wrap:wrap">' + meta.join("") + "</div>" +
+        "</div>" +
+      "</div>" +
+      '<div class="grid-3">' +
+        '<div class="card pad col-span-2"><h2 class="section-title">Projets (' + projects.length + ")</h2>" + projectsHtml + "</div>" +
+        '<div class="card pad"><h2 class="section-title">Notes</h2><p class="grey small">' + escapeHtml(client.notes || "Aucune note.") + "</p></div>" +
+      "</div>" +
+      '<div class="card pad"><h2 class="section-title">Livrables (' + deliverables.length + ")</h2>" + deliverablesHtml + "</div>" +
+      '<div class="card pad"><h2 class="section-title">Activit\u00e9 r\u00e9cente</h2>' + activityHtml + "</div>" +
+    "</div>"
+  );
+}
+
+/* ---------- Page : Calendrier ---------- */
+var calCursor = (function () { var d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 1); })();
+
+function calShift(delta) {
+  calCursor = new Date(calCursor.getFullYear(), calCursor.getMonth() + delta, 1);
+  render();
+}
+
+function renderCalendar() {
+  var deliverables = joinedDeliverables();
+  var projects = getTable("projects");
+
+  var year = calCursor.getFullYear();
+  var month = calCursor.getMonth();
+  var firstDay = new Date(year, month, 1);
+  var startOffset = (firstDay.getDay() + 6) % 7;
+  var daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  var cells = [];
+  for (var i = 0; i < startOffset; i++) cells.push(null);
+  for (var d = 1; d <= daysInMonth; d++) cells.push(new Date(year, month, d));
+
+  var dow = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map(function (w) {
+    return '<div class="cal-dow">' + w + "</div>";
+  }).join("");
+
+  var todayStr = new Date().toDateString();
+
+  var cellsHtml = cells.map(function (date) {
+    if (!date) return '<div class="cal-cell empty-cell"></div>';
+    var iso = dateToISO(date);
+    var events = [];
+    projects.filter(function (p) { return p.shooting_date === iso; }).forEach(function (p) {
+      events.push("Shooting \u2014 " + p.name);
+    });
+    deliverables.filter(function (dl) { return dl.deadline === iso; }).forEach(function (dl) {
+      events.push((dl.client ? dl.client.name : "") + " \u2014 " + dl.name);
+    });
+    var isToday = date.toDateString() === todayStr;
+    var evtHtml = events.slice(0, 3).map(function (e) { return '<div class="cal-evt">' + escapeHtml(e) + "</div>"; }).join("");
+    var more = events.length > 3 ? '<div class="grey" style="font-size:9px">+' + (events.length - 3) + "</div>" : "";
+    return (
+      '<div class="cal-cell' + (isToday ? " today" : "") + '">' +
+        '<div class="cal-daynum">' + date.getDate() + "</div>" + evtHtml + more +
+      "</div>"
+    );
+  }).join("");
+
+  var monthLabel = calCursor.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+
+  return (
+    '<div class="stack-8">' +
+      '<div class="cal-head"><h1 class="h1" style="text-transform:capitalize">' + monthLabel + '</h1>' +
+        '<div class="cal-nav"><button class="btn" onclick="calShift(-1)">\u2190</button><button class="btn" onclick="calShift(1)">\u2192</button></div>' +
+      "</div>" +
+      '<div class="cal-grid">' + dow + cellsHtml + "</div>" +
+    "</div>"
+  );
+}
+
+/* ---------- Page : Deliverables ---------- */
+function renderDeliverables(params) {
+  var initialQuery = params.get("q") || "";
+  var deliverables = joinedDeliverables().slice().sort(function (a, b) {
+    return (a.deadline || "") < (b.deadline || "") ? -1 : 1;
+  });
+
+  var rows = deliverables.map(function (d) {
+    var search = (d.name + " " + (d.project ? d.project.name : "") + " " + (d.client ? d.client.name : "")).toLowerCase();
+    var overdueClass = isOverdue(d.deadline, d.status) ? " overdue" : "";
+    return (
+      '<tr data-search="' + escapeHtml(search) + '" data-status="' + d.status + '">' +
+        "<td><p class=\"bold\" style=\"margin:0\">" + escapeHtml(d.name) + '</p><p class="grey small" style="margin:2px 0 0">' + escapeHtml(d.project ? d.project.name : "") + "</p></td>" +
+        "<td>" + escapeHtml(d.client ? d.client.name : "") + "</td>" +
+        "<td>" + escapeHtml(d.assigned_to || "\u2014") + "</td>" +
+        "<td>" + priorityBadge(d.priority) + "</td>" +
+        '<td class="' + overdueClass + '">' + formatDate(d.deadline) + "</td>" +
+        '<td><select onchange="changeStatus(\'' + d.id + '\', this.value)">' + statusOptions(d.status) + "</select></td>" +
+      "</tr>"
+    );
+  }).join("");
+
+  var table = deliverables.length === 0
+    ? emptyState("Aucun livrable", "Cr\u00e9ez votre premier livrable.")
+    : (
+      '<div class="card table-wrap"><table><thead><tr>' +
+        "<th>Livrable</th><th>Client</th><th>Assign\u00e9</th><th>Priorit\u00e9</th><th>Deadline</th><th>Statut</th>" +
+      '</tr></thead><tbody id="deliv-table-body">' + rows + "</tbody></table></div>"
+    );
+
+  return (
+    '<div class="stack-8">' +
+      '<div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px">' +
+        '<div><h1 class="h1">Deliverables</h1><p class="grey">' + deliverables.length + " r\u00e9sultats</p></div>" +
+        '<div class="table-controls">' +
+          '<input id="deliv-search" placeholder="Rechercher\u2026" value="' + escapeHtml(initialQuery) + '" oninput="applyDelivFilters()">' +
+          '<select id="deliv-status" onchange="applyDelivFilters()"><option value="all">Tous les statuts</option>' + STATUSES.map(function (s) { return '<option value="' + s.key + '">' + s.label + "</option>"; }).join("") + "</select>" +
+        "</div>" +
+      "</div>" +
+      table +
+    "</div>"
+  );
+}
+
+function applyDelivFilters() {
+  var qEl = document.getElementById("deliv-search");
+  var sEl = document.getElementById("deliv-status");
+  if (!qEl) return;
+  var q = (qEl.value || "").toLowerCase();
+  var status = sEl ? sEl.value : "all";
+  var rows = document.querySelectorAll("#deliv-table-body tr");
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    var text = r.getAttribute("data-search") || "";
+    var st = r.getAttribute("data-status") || "";
+    var matchQ = text.indexOf(q) !== -1;
+    var matchS = status === "all" || status === st;
+    r.style.display = (matchQ && matchS) ? "" : "none";
+  }
+}
+
+/* ---------- Page : Messages ---------- */
+function renderMessages() {
+  var clients = getTable("clients").slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
+  var deliverables = joinedDeliverables();
+  var messages = getTable("messages").slice().sort(function (a, b) { return a.created_at < b.created_at ? 1 : -1; });
+
+  var clientOptions = clients.map(function (c) { return '<option value="' + c.id + '">' + escapeHtml(c.name) + "</option>"; }).join("");
+  var statusOpts = STATUSES.map(function (s) { return '<option value="' + s.key + '"' + (s.key === "editing" ? " selected" : "") + ">" + s.label + "</option>"; }).join("");
+
+  var log = messages.length === 0
+    ? emptyState("Aucun message", "Les messages envoy\u00e9s appara\u00eetront ici.")
+    : messages.slice(0, 10).map(function (m) {
+        return '<div class="msg-log"><div class="d">' + formatDate(m.created_at.slice(0, 10)) + '</div><div class="c">' + escapeHtml(m.content) + "</div></div>";
+      }).join("");
+
+  return (
+    '<div class="msg-grid">' +
+      '<div class="card pad">' +
+        '<h1 class="h1" style="font-size:18px">G\u00e9n\u00e9rateur de message</h1>' +
+        '<div class="grid-2" style="margin-top:16px">' +
+          '<label><span>Client</span><select id="msg-client" onchange="onMsgClientChange()"><option value="">S\u00e9lectionner\u2026</option>' + clientOptions + "</select></label>" +
+          '<label><span>Livrable (optionnel)</span><select id="msg-deliverable"><option value="">Aucun</option></select></label>' +
+          '<label><span>Statut</span><select id="msg-status">' + statusOpts + "</select></label>" +
+          '<label><span>Lien du rendu (optionnel)</span><input id="msg-link" placeholder="https://\u2026"></label>' +
+        "</div>" +
+        '<button class="btn" style="margin-top:16px" onclick="generateMessage()">G\u00e9n\u00e9rer le message</button>' +
+        '<textarea id="msg-content" style="margin-top:14px" placeholder="Le message g\u00e9n\u00e9r\u00e9 appara\u00eetra ici\u2026"></textarea>' +
+        '<button class="btn btn-primary" style="margin-top:14px" onclick="sendMessage()">Envoyer via WhatsApp</button>' +
+        '<p id="msg-error" class="error"></p>' +
+      "</div>" +
+      '<div class="card pad"><h2 class="section-title">Historique</h2>' + log + "</div>" +
+    "</div>"
+  );
+}
+
+function onMsgClientChange() {
+  var clientId = document.getElementById("msg-client").value;
+  var deliverables = joinedDeliverables().filter(function (d) { return d.project && d.project.client_id === clientId; });
+  var sel = document.getElementById("msg-deliverable");
+  sel.innerHTML = '<option value="">Aucun</option>' + deliverables.map(function (d) {
+    return '<option value="' + d.id + '">' + escapeHtml(d.name) + "</option>";
+  }).join("");
+}
+
+function generateMessage() {
+  var clientId = document.getElementById("msg-client").value;
+  var clients = getTable("clients");
+  var client = clients.filter(function (c) { return c.id === clientId; })[0];
+  var deliverableId = document.getElementById("msg-deliverable").value;
+  var deliverable = getTable("deliverables").filter(function (d) { return d.id === deliverableId; })[0];
+  var status = document.getElementById("msg-status").value;
+  var link = document.getElementById("msg-link").value;
+  var text = generateWaMessage({
+    firstName: client ? client.name.split(" ")[0] : "",
+    status: status,
+    deliverableType: deliverable ? deliverable.type : "",
+    link: link
+  });
+  document.getElementById("msg-content").value = text;
+}
+
+async function sendMessage() {
+  var errorEl = document.getElementById("msg-error");
+  errorEl.textContent = "";
+  var clientId = document.getElementById("msg-client").value;
+  var client = getTable("clients").filter(function (c) { return c.id === clientId; })[0];
+  var content = document.getElementById("msg-content").value;
+  if (!clientId || !content) { errorEl.textContent = "S\u00e9lectionnez un client et g\u00e9n\u00e9rez un message."; return; }
+  if (!client || !client.whatsapp) { errorEl.textContent = "Ce client n\u2019a pas de num\u00e9ro WhatsApp renseign\u00e9."; return; }
+  var digits = client.whatsapp.replace(/[^\d]/g, "");
+  var url = "https://wa.me/" + digits + "?text=" + encodeURIComponent(content);
+  window.open(url, "_blank");
+  try {
+    await insertRow("messages", {
+      client_id: clientId,
+      deliverable_id: document.getElementById("msg-deliverable").value || null,
+      content: content,
+      channel: "whatsapp",
+      status: "sent"
+    });
+    render();
+  } catch (e) {
+    errorEl.textContent = "Message ouvert dans WhatsApp, mais l\u2019historique n\u2019a pas pu \u00eatre enregistr\u00e9 : " + e.message;
+  }
+}
+
+/* ---------- Page : Settings ---------- */
+function renderSettings() {
+  var team = getTable("team_members").slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
+
+  var teamHtml = team.length === 0
+    ? emptyState("Aucun membre", "Ajoutez les membres de l\u2019\u00e9quipe TRA Studio.")
+    : '<div class="list">' + team.map(function (m) {
+        return (
+          '<div class="list-row"><div><p class="bold" style="margin:0">' + escapeHtml(m.name) + '</p>' +
+          '<p class="grey small" style="margin:2px 0 0">' + escapeHtml(m.role || "") + (m.email ? " \u00b7 " + escapeHtml(m.email) : "") + "</p></div>" +
+          '<button class="icon-btn" onclick="removeTeamMember(\'' + m.id + '\')">Retirer</button></div>'
+        );
+      }).join("") + "</div>";
+
+  return (
+    '<div class="stack-8">' +
+      "<div><h1 class=\"h1\">Settings</h1><p class=\"grey\">\u00c9quipe, sauvegarde et synchronisation</p></div>" +
+      '<div class="card pad">' +
+        '<h2 class="section-title">Sauvegarde &amp; synchronisation</h2>' +
+        '<p class="grey small">Les donn\u00e9es sont stock\u00e9es dans ce navigateur. Pour les retrouver sur un autre appareil, exportez une sauvegarde ici puis importez-la l\u00e0-bas.</p>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px">' +
+          '<button class="btn btn-primary" onclick="exportBackup()">Exporter une sauvegarde</button>' +
+          '<button class="btn" onclick="document.getElementById(\'import-input\').click()">Importer une sauvegarde</button>' +
+          '<input id="import-input" type="file" accept="application/json" style="display:none" onchange="importBackup(event)">' +
+          '<button class="btn" onclick="confirmReset()">R\u00e9initialiser</button>' +
+        "</div>" +
+        '<p id="settings-msg" class="grey small" style="margin-top:10px"></p>' +
+      "</div>" +
+      '<div class="card pad">' +
+        '<h2 class="section-title">\u00c9quipe</h2>' +
+        '<div class="grid-2" style="margin-bottom:14px;grid-template-columns:1fr 1fr 1fr auto">' +
+          '<input id="team-name" placeholder="Nom">' +
+          '<input id="team-role" placeholder="R\u00f4le">' +
+          '<input id="team-email" placeholder="Email">' +
+          '<button class="btn btn-primary" onclick="addTeamMember()">Ajouter</button>' +
+        "</div>" +
+        teamHtml +
+      "</div>" +
+    "</div>"
+  );
+}
+
+async function addTeamMember() {
+  var name = document.getElementById("team-name").value.trim();
+  if (!name) return;
+  try {
+    await insertRow("team_members", {
+      name: name,
+      role: document.getElementById("team-role").value,
+      email: document.getElementById("team-email").value
+    });
+    render();
+  } catch (e) {
+    alert("Impossible d\u2019ajouter ce membre : " + e.message);
+  }
+}
+
+async function removeTeamMember(id) {
+  try {
+    await deleteRow("team_members", id);
+    render();
+  } catch (e) {
+    alert("Impossible de retirer ce membre : " + e.message);
+  }
+}
+
+function exportBackup() {
+  var json = exportDbJson();
+  var blob = new Blob([json], { type: "application/json" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = "tra-studio-backup-" + todayISO() + ".json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+async function importBackup(evt) {
+  var file = evt.target.files && evt.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = async function () {
+    var msg = document.getElementById("settings-msg");
+    try {
+      await importDbJson(reader.result);
+      if (msg) { msg.textContent = "Import r\u00e9ussi."; msg.style.color = "#4ADE80"; }
+      render();
+    } catch (e) {
+      if (msg) { msg.textContent = "Fichier invalide ou erreur serveur : " + e.message; msg.style.color = "#E52329"; }
+    }
+  };
+  reader.readAsText(file);
+  evt.target.value = "";
+}
+
+async function confirmReset() {
+  if (window.confirm("Supprimer toutes les donn\u00e9es du serveur ? Cette action est irr\u00e9versible et concerne toute l\u2019\u00e9quipe.")) {
+    try {
+      await resetDbRemote();
+      render();
+    } catch (e) {
+      alert("La r\u00e9initialisation a \u00e9chou\u00e9 : " + e.message);
+    }
+  }
+}
+
+/* ---------- Modale "Quick Add" (création client / projet / livrable) ---------- */
+function renderModal() {
+  var titles = { client: "Nouveau client", project: "Nouveau projet", deliverable: "Nouveau livrable" };
+  var body = "";
+
+  if (uiModal.type === "client") {
+    body =
+      '<label><span>Nom du contact *</span><input id="f-name" required></label>' +
+      '<label><span>Entreprise</span><input id="f-company"></label>' +
+      '<label><span>WhatsApp</span><input id="f-whatsapp" placeholder="+212600000000"></label>' +
+      '<label><span>Email</span><input id="f-email"></label>' +
+      '<label><span>Responsable TRA</span><input id="f-manager"></label>' +
+      '<label><span>Notes</span><textarea id="f-notes" rows="3"></textarea></label>';
+  } else if (uiModal.type === "project") {
+    var clients = getTable("clients").slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
+    var clientOpts = clients.map(function (c) { return '<option value="' + c.id + '">' + escapeHtml(c.name) + "</option>"; }).join("");
+    body =
+      '<label><span>Client *</span><select id="f-client" required><option value="">S\u00e9lectionner\u2026</option>' + clientOpts + "</select></label>" +
+      '<label><span>Nom du projet *</span><input id="f-name" required></label>' +
+      '<label><span>Type</span><input id="f-type" placeholder="Podcast, Reels, Shooting\u2026"></label>' +
+      '<div class="grid-2">' +
+        '<label><span>Date de shooting</span><input type="date" id="f-shoot"></label>' +
+        '<label><span>Deadline</span><input type="date" id="f-deadline"></label>' +
+      "</div>";
+  } else if (uiModal.type === "deliverable") {
+    var clientsAll = getTable("clients");
+    var projects = getTable("projects").map(function (p) {
+      var c = clientsAll.filter(function (cc) { return cc.id === p.client_id; })[0];
+      return { id: p.id, name: p.name, clientName: c ? c.name : "" };
+    });
+    var projectOpts = projects.map(function (p) {
+      return '<option value="' + p.id + '">' + escapeHtml(p.clientName) + " \u2014 " + escapeHtml(p.name) + "</option>";
+    }).join("");
+    var typeOpts = TYPES.map(function (t) { return '<option value="' + t + '">' + t + "</option>"; }).join("");
+    body =
+      '<label><span>Projet *</span><select id="f-project" required><option value="">S\u00e9lectionner\u2026</option>' + projectOpts + "</select></label>" +
+      '<label><span>Nom du livrable *</span><input id="f-name" required></label>' +
+      '<label><span>Type</span><select id="f-type"><option value="">S\u00e9lectionner\u2026</option>' + typeOpts + "</select></label>" +
+      '<label><span>Assign\u00e9 \u00e0</span><input id="f-assigned"></label>' +
+      '<div class="grid-2">' +
+        '<label><span>Deadline</span><input type="date" id="f-deadline"></label>' +
+        '<label><span>Priorit\u00e9</span><select id="f-priority"><option value="high">Haute</option><option value="medium" selected>Moyenne</option><option value="low">Basse</option></select></label>' +
+      "</div>" +
+      '<label><span>Prochaine action</span><input id="f-next" placeholder="Ex : envoyer rendu final"></label>';
+  }
+
+  return (
+    '<div class="modal-overlay" onclick="if(event.target===this) closeModal()">' +
+      '<div class="modal">' +
+        '<div class="modal-head"><h2>' + titles[uiModal.type] + '</h2><button class="icon-btn" onclick="closeModal()">\u2715</button></div>' +
+        '<form class="stack-form" onsubmit="submitQuickAdd(event)">' +
+          body +
+          '<div id="modal-error" class="error"></div>' +
+          '<div class="modal-actions"><button type="button" class="btn" onclick="closeModal()">Annuler</button><button type="submit" class="btn btn-primary">Cr\u00e9er</button></div>' +
+        "</form>" +
+      "</div>" +
+    "</div>"
+  );
+}
+
+async function submitQuickAdd(e) {
+  e.preventDefault();
+  var errorEl = document.getElementById("modal-error");
+  var submitBtn = e.target.querySelector("button[type=submit]");
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Enregistrement\u2026"; }
+
+  try {
+    if (uiModal.type === "client") {
+      var name = document.getElementById("f-name").value.trim();
+      if (!name) throw new Error("Le nom du contact est requis.");
+      await insertRow("clients", {
+        name: name,
+        company: document.getElementById("f-company").value || null,
+        whatsapp: document.getElementById("f-whatsapp").value || null,
+        email: document.getElementById("f-email").value || null,
+        account_manager: document.getElementById("f-manager").value || null,
+        notes: document.getElementById("f-notes").value || null
+      });
+    } else if (uiModal.type === "project") {
+      var clientId = document.getElementById("f-client").value;
+      var pname = document.getElementById("f-name").value.trim();
+      if (!clientId || !pname) throw new Error("Client et nom du projet requis.");
+      await insertRow("projects", {
+        client_id: clientId,
+        name: pname,
+        type: document.getElementById("f-type").value || null,
+        shooting_date: document.getElementById("f-shoot").value || null,
+        deadline: document.getElementById("f-deadline").value || null,
+        status: "in_progress"
+      });
+    } else if (uiModal.type === "deliverable") {
+      var projectId = document.getElementById("f-project").value;
+      var dname = document.getElementById("f-name").value.trim();
+      if (!projectId || !dname) throw new Error("Projet et nom du livrable requis.");
+      await insertRow("deliverables", {
+        project_id: projectId,
+        name: dname,
+        type: document.getElementById("f-type").value || null,
+        assigned_to: document.getElementById("f-assigned").value || null,
+        deadline: document.getElementById("f-deadline").value || null,
+        priority: document.getElementById("f-priority").value || "medium",
+        status: "to_edit",
+        next_action: document.getElementById("f-next").value || null
+      });
+    }
+    uiModal = null;
+    render();
+  } catch (err) {
+    if (errorEl) errorEl.textContent = err.message;
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Cr\u00e9er"; }
+  }
+}
+
+</script>
+</body>
+</html>
